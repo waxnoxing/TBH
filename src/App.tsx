@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   ChevronDown, 
   Lock, 
@@ -14,11 +14,7 @@ import {
   Info,
   Terminal,
   Volume2,
-  VolumeX,
-  Cpu,
-  Play,
-  Eye,
-  EyeOff
+  VolumeX
 } from 'lucide-react';
 
 interface Preset {
@@ -79,8 +75,8 @@ export default function App() {
 
   // Background states
   const [bgType, setBgType] = useState<'color' | 'image' | 'gradient'>('color');
-  const [bgColor, setBgColor] = useState<string>('#ffffff');
-  const [bgGradient, setBgGradient] = useState<string>('');
+  const [bgColor] = useState<string>('#ffffff');
+  const [bgGradient] = useState<string>('');
   const [bgImageSrc, setBgImageSrc] = useState<string>('');
   const [bgFileName, setBgFileName] = useState<string>('');
   const [bgFit, setBgFit] = useState<'cover' | 'contain' | 'stretch' | 'repeat'>('cover');
@@ -164,6 +160,7 @@ export default function App() {
     });
   };
 
+  /*
   const playBootChime = () => {
     // Retro chord chime for boot sequence completion
     const chords = [261.63, 329.63, 392.00, 523.25, 659.25];
@@ -181,6 +178,7 @@ export default function App() {
       playAudioTone(440, 0.3, 'sine', 0.05);
     }, 150);
   };
+  */
 
   // Keyboard click sound helper for input typing
   const playKeyboardClick = () => {
