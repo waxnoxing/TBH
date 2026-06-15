@@ -10,7 +10,6 @@ import {
   Plus,
   Maximize,
   RefreshCw,
-  Download,
   Info,
   Terminal,
   Volume2,
@@ -651,6 +650,7 @@ export default function App() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  /*
   // --- Offscreen Canvas High-Res Export Engine ---
   const handleExport = () => {
     playSuccessSound();
@@ -739,6 +739,7 @@ export default function App() {
     link.href = canvas.toDataURL('image/png');
     link.click();
   };
+  */
 
   // --- Main System Dashboard ---
   return (
@@ -1295,16 +1296,7 @@ export default function App() {
           </section>
         </div>
 
-        {/* Sidebar Footer Export */}
-        <div className="p-5 border-t border-term-primary/20 bg-black">
-          <button
-            onClick={handleExport}
-            className="w-full py-3.5 bg-term-primary hover:bg-white text-black font-bold text-xs tracking-widest transition-all shadow-lg shadow-term-primary/10 flex items-center justify-center gap-2 border border-term-primary active:translate-y-0.5 active:scale-98"
-          >
-            <Download className="w-4 h-4" />
-            <span>EXPORT_HIGH_RES_PNG</span>
-          </button>
-        </div>
+
       </aside>
 
       {/* Main Workspace Area */}
