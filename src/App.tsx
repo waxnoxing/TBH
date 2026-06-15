@@ -103,6 +103,11 @@ export default function App() {
   // Donation Modal states
   const [isDonateOpen, setIsDonateOpen] = useState<boolean>(false);
 
+  // Slideshow States
+  const [isSlideshowActive, setIsSlideshowActive] = useState<boolean>(false);
+  const [slideshowInterval, setSlideshowInterval] = useState<number>(10);
+  const [slideshowUnit, setSlideshowUnit] = useState<'sec' | 'min'>('sec');
+
   // Ref to the viewport container for autoFit sizing
   const viewportRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -120,6 +125,39 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('reso_muted', isMuted ? 'true' : 'false');
   }, [isMuted]);
+
+  // Switch background immediately when slideshow is activated if it's not already a stock background
+  useEffect(() => {
+    if (isSlideshowActive) {
+      const isCurrentStock = stockBgs.some(bg => bg.src === bgImageSrc);
+      if (!isCurrentStock && stockBgs.length > 0) {
+        setBgImageSrc(stockBgs[0].src);
+        setBgFileName(stockBgs[0].name);
+        setBgType('image');
+      }
+    }
+  }, [isSlideshowActive]);
+
+  // Background Auto Rotate Slideshow Hook
+  useEffect(() => {
+    if (!isSlideshowActive) return;
+
+    const intervalMs = slideshowUnit === 'sec' ? slideshowInterval * 1000 : slideshowInterval * 60 * 1000;
+    if (intervalMs <= 0) return;
+
+    const timer = setInterval(() => {
+      // Find current index in stockBgs
+      const currentIndex = stockBgs.findIndex(bg => bg.src === bgImageSrc);
+      const nextIndex = (currentIndex + 1) % stockBgs.length;
+      const nextBg = stockBgs[nextIndex];
+      
+      setBgImageSrc(nextBg.src);
+      setBgFileName(nextBg.name);
+      setBgType('image');
+    }, intervalMs);
+
+    return () => clearInterval(timer);
+  }, [isSlideshowActive, slideshowInterval, slideshowUnit, bgImageSrc]);
 
   // --- Web Audio Synth Engines ---
   const playAudioTone = (frequency: number, duration: number, type: OscillatorType = 'sine', gainVal = 0.08) => {
@@ -1034,6 +1072,56 @@ export default function App() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Auto Rotate Background */}
+            <div className="flex flex-col gap-2 border-t border-term-primary/10 pt-3 mt-1">
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={isSlideshowActive}
+                    onChange={(e) => {
+                      playClickSound();
+                      setIsSlideshowActive(e.target.checked);
+                    }}
+                    className="sr-only"
+                  />
+                  <div className={`w-10 h-5 border transition-colors duration-200 ${isSlideshowActive ? 'bg-term-dim border-term-primary' : 'bg-black border-term-primary/20'}`}>
+                    <div className={`absolute top-0.5 left-0.5 w-4 h-4 transition-transform duration-200 ${isSlideshowActive ? 'translate-x-5 bg-term-primary' : 'translate-x-0 bg-term-primary/30'}`} />
+                  </div>
+                </div>
+                <span className="text-[9px] text-term-primary/60 font-mono">bg.autoRotate = {isSlideshowActive ? 'true' : 'false'};</span>
+              </label>
+
+              {isSlideshowActive && (
+                <div className="flex items-center gap-2 mt-1 pl-1">
+                  <label className="text-[9px] text-term-primary/60 font-mono">interval =</label>
+                  <div className="flex items-center bg-black border border-term-primary/30 focus-within:border-term-primary w-16">
+                    <input
+                      type="number"
+                      value={slideshowInterval}
+                      min="1"
+                      onChange={(e) => {
+                        const val = Math.max(1, parseInt(e.target.value) || 1);
+                        setSlideshowInterval(val);
+                      }}
+                      className="w-full bg-transparent border-none py-1 px-1.5 text-[10px] text-term-primary outline-none"
+                    />
+                  </div>
+                  <select
+                    value={slideshowUnit}
+                    onChange={(e: any) => {
+                      playClickSound();
+                      setSlideshowUnit(e.target.value);
+                    }}
+                    className="bg-black border border-term-primary/30 text-[9px] py-1 px-1 text-term-primary outline-none cursor-pointer focus:border-term-primary"
+                  >
+                    <option value="sec">SEC</option>
+                    <option value="min">MIN</option>
+                  </select>
+                </div>
+              )}
             </div>
 
             {/* Background Brightness Slider */}
