@@ -217,3 +217,25 @@ input[type="color"]::-webkit-color-swatch {
 .border-term-dim {
   border-color: var(--term-panel-border) !important;
 }
+
+/* Donation Modal laser scanner effect */
+@keyframes laser-scan {
+  0%, 100% {
+    top: 0%;
+  }
+  50% {
+    top: 100%;
+  }
+}
+
+.laser-scanner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--term-primary);
+  box-shadow: 0 0 10px var(--term-primary), 0 0 20px var(--term-primary);
+  animation: laser-scan 3s ease-in-out infinite;
+  pointer-events: none;
+}
+

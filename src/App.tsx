@@ -1,20 +1,22 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  ChevronDown, 
-  Lock, 
-  Unlock, 
-  Move, 
-  UploadCloud, 
-  Trash2, 
-  Minus, 
-  Plus, 
-  Maximize, 
-  RefreshCw, 
+import {
+  ChevronDown,
+  Lock,
+  Unlock,
+  Move,
+  UploadCloud,
+  Trash2,
+  Minus,
+  Plus,
+  Maximize,
+  RefreshCw,
   Download,
   Info,
   Terminal,
   Volume2,
-  VolumeX
+  VolumeX,
+  Heart,
+  QrCode
 } from 'lucide-react';
 
 interface Preset {
@@ -26,6 +28,7 @@ interface Preset {
 
 const WORKSPACE_SIZE = 5000;
 
+import DonasiBarcode from './assets/Donasi/image.png';
 import CaveBg from './assets/Stockbg/Cave-g.gif';
 import DushBg from './assets/Stockbg/Dush-g.gif';
 import HellBg from './assets/Stockbg/Hell-g.gif';
@@ -97,6 +100,9 @@ export default function App() {
   const [showGrid, setShowGrid] = useState<boolean>(true);
   const [showShadow, setShowShadow] = useState<boolean>(true);
 
+  // Donation Modal states
+  const [isDonateOpen, setIsDonateOpen] = useState<boolean>(false);
+
   // Ref to the viewport container for autoFit sizing
   const viewportRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -136,7 +142,7 @@ export default function App() {
 
       osc.start();
       osc.stop(ctx.currentTime + duration);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const playClickSound = () => {
@@ -257,7 +263,7 @@ export default function App() {
   // Keep refs of functions to avoid re-triggering resize hooks on state change
   const autoFitRef = useRef(autoFit);
   const scrollCanvasIntoViewRef = useRef(scrollCanvasIntoView);
-  
+
   useEffect(() => {
     autoFitRef.current = autoFit;
     scrollCanvasIntoViewRef.current = scrollCanvasIntoView;
@@ -400,7 +406,7 @@ export default function App() {
     setLeft(prevLeft);
     setTop(prevTop);
     setIsResizeModeActive(false);
-    
+
     let matchedPreset = 'custom';
     for (const p of savedPresets) {
       if (p.width === prevWidth && p.height === prevHeight) {
@@ -415,7 +421,7 @@ export default function App() {
     playSuccessSound();
     setIsResizeModeActive(false);
     setRatio(width / height);
-    
+
     let matchedPreset = 'custom';
     for (const p of savedPresets) {
       if (p.width === width && p.height === height) {
@@ -481,7 +487,7 @@ export default function App() {
         } else {
           newHeight = Math.round(newWidth / ratio);
         }
-        
+
         newWidth = Math.max(100, Math.min(8000, newWidth));
         newHeight = Math.max(100, Math.min(8000, newHeight));
       }
@@ -699,12 +705,11 @@ export default function App() {
   // --- Main System Dashboard ---
   return (
     <div className={`flex h-screen w-screen bg-[#000000] text-slate-200 font-mono select-none theme-${theme}`}>
-      
+
       {/* Sidebar Controls (Terminal HUD panels) */}
-      <aside 
-        className={`bg-[#05070a] border-r border-term-primary/20 flex flex-col z-50 shrink-0 transition-all duration-300 relative crt-panel-effect ${
-          isSidebarOpen ? 'w-[380px] opacity-100' : 'w-0 opacity-0 overflow-hidden pointer-events-none'
-        }`}
+      <aside
+        className={`bg-[#05070a] border-r border-term-primary/20 flex flex-col z-50 shrink-0 transition-all duration-300 relative crt-panel-effect ${isSidebarOpen ? 'w-[380px] opacity-100' : 'w-0 opacity-0 overflow-hidden pointer-events-none'
+          }`}
       >
         {/* Sidebar Header */}
         <div className="p-6 border-b border-term-primary/20 bg-black/40">
@@ -715,16 +720,16 @@ export default function App() {
               </div>
               <div>
                 <div className="flex items-center gap-1">
-                  <h1 className="font-bold text-sm tracking-widest text-term-primary">CYBER_DECK</h1>
+                  <h1 className="font-bold text-sm tracking-widest text-term-primary">Custom Background</h1>
                   <span className="w-2.5 h-4 bg-term-primary terminal-blink" />
                 </div>
-                <p className="text-[9px] text-term-primary/50">SYSTEM_CONFIG // RES v9.2</p>
+                <p className="text-[9px] text-term-primary/50">SYSTEM_BACKGROUND // sugaB v9.2</p>
               </div>
             </div>
 
             {/* Top controls: Mute & Color Switchers */}
             <div className="flex items-center gap-1.5">
-              <button 
+              <button
                 onClick={() => setIsMuted(!isMuted)}
                 className="w-7 h-7 border border-term-primary/30 flex items-center justify-center text-term-primary hover:bg-term-dim transition-all focus:outline-none"
                 title={isMuted ? "Unmute Synths" : "Mute Synths"}
@@ -745,9 +750,8 @@ export default function App() {
                     playSuccessSound();
                     setTheme(t);
                   }}
-                  className={`w-4 h-4 border transition-all relative ${
-                    theme === t ? 'border-term-primary scale-110' : 'border-transparent opacity-60 hover:opacity-100'
-                  }`}
+                  className={`w-4 h-4 border transition-all relative ${theme === t ? 'border-term-primary scale-110' : 'border-transparent opacity-60 hover:opacity-100'
+                    }`}
                   style={{
                     backgroundColor: t === 'green' ? '#00ff66' : t === 'amber' ? '#ffb000' : t === 'pink' ? '#ff007f' : '#00d2ff'
                   }}
@@ -764,13 +768,25 @@ export default function App() {
 
         {/* Sidebar Scrollable Contents */}
         <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5 scrollbar-thin">
-          
+
+          {/* Donate Section */}
+          <button
+            onClick={() => {
+              playSuccessSound();
+              setIsDonateOpen(true);
+            }}
+            className="w-full flex items-center justify-center gap-2 border border-yellow-500/40 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-black transition-all py-3 px-4 text-xs font-bold select-none focus:outline-none animate-pulse hover:animate-none group shadow-[0_0_10px_rgba(250,174,43,0.15)] hover:shadow-[0_0_20px_rgba(250,174,43,0.4)]"
+          >
+            <Heart className="w-4 h-4 fill-current animate-bounce group-hover:scale-110" />
+            <span className="font-extrabold uppercase">Donate // Support</span>
+          </button>
+
           {/* Section 1: Resolution controls */}
           <section className="flex flex-col gap-4 border border-term-primary/20 p-4 bg-black/80 relative">
             <div className="absolute top-0 right-4 -translate-y-1/2 bg-[#05070a] px-2 text-[8px] text-term-primary/40 uppercase tracking-wider">
               [sys.config.resolution]
             </div>
-            
+
             <h2 className="font-bold text-xs tracking-wide text-term-primary flex items-center gap-1.5">
               &gt; setResolution()
             </h2>
@@ -778,12 +794,12 @@ export default function App() {
             <div className="flex flex-col gap-1.5">
               <label className="text-[9px] text-term-primary/60 font-mono">import presets from &apos;templates&apos;;</label>
               <div className="relative">
-                <select 
-                  value={preset} 
+                <select
+                  value={preset}
                   onChange={(e) => selectPreset(e.target.value)}
                   className="w-full bg-black border border-term-primary/30 text-xs py-2 px-3 pr-10 text-term-primary outline-none cursor-pointer appearance-none focus:border-term-primary"
                 >
-                  <option value="custom" className="bg-black text-term-primary">&gt; CUSTOM_DRAG_MODE</option>
+                  <option value="custom" className="bg-black text-term-primary">&gt; CUSTOM_RESOLUSI</option>
                   {defaultPresets.map((p) => (
                     <option key={p.id} value={p.id} className="bg-black text-term-primary">
                       &gt; {p.name.toUpperCase()} ({p.width.toFixed(2)}x{p.height})
@@ -803,8 +819,8 @@ export default function App() {
             <div className="flex flex-col gap-1.5 border-t border-term-primary/10 pt-3 mt-1">
               <label className="text-[9px] text-term-primary/60 font-mono">saveCurrentResolution():</label>
               <div className="flex gap-2">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={newPresetName}
                   onChange={(e) => {
                     setNewPresetName(e.target.value);
@@ -813,7 +829,7 @@ export default function App() {
                   placeholder="PRESET_NAME"
                   className="flex-1 bg-black border border-term-primary/30 py-1.5 px-2.5 text-xs text-term-primary outline-none placeholder:text-term-primary/30 focus:border-term-primary"
                 />
-                <button 
+                <button
                   onClick={addCurrentAsPreset}
                   className="bg-term-primary hover:bg-white text-black text-[10px] font-bold px-3 transition-all border border-term-primary active:scale-95"
                 >
@@ -828,17 +844,16 @@ export default function App() {
                 <label className="text-[9px] text-term-primary/60 font-mono">savedPresets.list =</label>
                 <div className="flex flex-col gap-1 max-h-[120px] overflow-y-auto border border-term-primary/15 p-1 bg-black/40 scrollbar-thin">
                   {savedPresets.map((p) => (
-                    <div 
-                      key={p.id} 
+                    <div
+                      key={p.id}
                       onClick={() => selectPreset(p.id)}
-                      className={`flex items-center justify-between text-[10px] px-2 py-1 cursor-pointer transition-all ${
-                        preset === p.id 
-                          ? 'bg-term-dim text-term-primary border border-term-primary/30' 
-                          : 'text-term-primary/70 hover:text-term-primary hover:bg-white/5 border border-transparent'
-                      }`}
+                      className={`flex items-center justify-between text-[10px] px-2 py-1 cursor-pointer transition-all ${preset === p.id
+                        ? 'bg-term-dim text-term-primary border border-term-primary/30'
+                        : 'text-term-primary/70 hover:text-term-primary hover:bg-white/5 border border-transparent'
+                        }`}
                     >
                       <span className="truncate max-w-[180px]">{p.name} ({p.width}x{p.height})</span>
-                      <button 
+                      <button
                         onClick={(e) => deletePreset(p.id, e)}
                         className="text-red-500 hover:text-red-400 p-0.5 hover:bg-red-500/10 transition-all focus:outline-none"
                         title="Delete Preset"
@@ -856,15 +871,15 @@ export default function App() {
                 <label className="text-[9px] text-term-primary/60 font-mono">let width =</label>
                 <div className="flex items-center bg-black border border-term-primary/30 focus-within:border-term-primary">
                   <span className="pl-3 text-[10px] text-term-primary/40 select-none">$</span>
-                  <input 
-                    type="number" 
-                    value={width} 
+                  <input
+                    type="number"
+                    value={width}
                     onChange={(e) => {
                       handleWidthChange(parseInt(e.target.value) || 0);
                       playKeyboardClick();
                     }}
-                    min="100" 
-                    max="8000" 
+                    min="100"
+                    max="8000"
                     className="w-full bg-transparent border-none py-2 px-2 text-xs text-term-primary outline-none"
                   />
                   <span className="pr-3 text-[8px] text-term-primary/40 select-none">px</span>
@@ -874,15 +889,15 @@ export default function App() {
                 <label className="text-[9px] text-term-primary/60 font-mono">let height =</label>
                 <div className="flex items-center bg-black border border-term-primary/30 focus-within:border-term-primary">
                   <span className="pl-3 text-[10px] text-term-primary/40 select-none">$</span>
-                  <input 
-                    type="number" 
-                    value={height} 
+                  <input
+                    type="number"
+                    value={height}
                     onChange={(e) => {
                       handleHeightChange(parseInt(e.target.value) || 0);
                       playKeyboardClick();
                     }}
-                    min="100" 
-                    max="8000" 
+                    min="100"
+                    max="8000"
                     className="w-full bg-transparent border-none py-2 px-2 text-xs text-term-primary outline-none"
                   />
                   <span className="pr-3 text-[8px] text-term-primary/40 select-none">px</span>
@@ -891,26 +906,24 @@ export default function App() {
             </div>
 
             <div className="flex justify-end">
-              <button 
+              <button
                 onClick={toggleRatioLock}
-                className={`flex items-center gap-2 py-1.5 px-3 border text-[9px] font-mono transition-all ${
-                  isRatioLocked 
-                    ? 'border-term-primary bg-term-dim text-term-primary shadow-[0_0_8px_var(--term-primary-glow)]' 
-                    : 'border-term-primary/20 bg-transparent text-slate-500 hover:text-term-primary hover:border-term-primary/40'
-                }`}
+                className={`flex items-center gap-2 py-1.5 px-3 border text-[9px] font-mono transition-all ${isRatioLocked
+                  ? 'border-term-primary bg-term-dim text-term-primary shadow-[0_0_8px_var(--term-primary-glow)]'
+                  : 'border-term-primary/20 bg-transparent text-slate-500 hover:text-term-primary hover:border-term-primary/40'
+                  }`}
               >
                 {isRatioLocked ? <Lock className="w-3.5 h-3.5 text-term-primary" /> : <Unlock className="w-3.5 h-3.5 text-slate-500" />}
                 <span>{isRatioLocked ? 'const LOCK_RATIO = true;' : 'const LOCK_RATIO = false;'}</span>
               </button>
             </div>
 
-            <button 
+            <button
               onClick={() => isResizeModeActive ? applyResizeMode() : startResizeMode()}
-              className={`w-full py-2.5 font-bold text-xs tracking-widest flex items-center justify-center gap-2 transition-all border ${
-                isResizeModeActive 
-                  ? 'bg-term-primary hover:bg-term-primary/90 text-black border-term-primary shadow-[0_0_15px_var(--term-primary-glow)]' 
-                  : 'bg-transparent text-term-primary border-term-primary/30 hover:border-term-primary hover:bg-term-dim'
-              }`}
+              className={`w-full py-2.5 font-bold text-xs tracking-widest flex items-center justify-center gap-2 transition-all border ${isResizeModeActive
+                ? 'bg-term-primary hover:bg-term-primary/90 text-black border-term-primary shadow-[0_0_15px_var(--term-primary-glow)]'
+                : 'bg-transparent text-term-primary border-term-primary/30 hover:border-term-primary hover:bg-term-dim'
+                }`}
             >
               <Move className="w-4 h-4" />
               <span>{isResizeModeActive ? 'APPLY_CHANGES' : 'DRAG_RESIZE_MODE'}</span>
@@ -928,7 +941,7 @@ export default function App() {
             </h2>
 
             {/* Drop Zone */}
-            <div 
+            <div
               onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
               onDragLeave={() => setIsDragOver(false)}
               onDrop={handleDrop}
@@ -936,18 +949,17 @@ export default function App() {
                 playClickSound();
                 fileInputRef.current?.click();
               }}
-              className={`border border-dashed p-5 text-center cursor-pointer relative transition-all bg-black ${
-                isDragOver ? 'border-term-primary bg-term-dim shadow-[0_0_12px_var(--term-primary-glow)]' : 'border-term-primary/30 hover:border-term-primary/60 hover:bg-term-dim'
-              }`}
+              className={`border border-dashed p-5 text-center cursor-pointer relative transition-all bg-black ${isDragOver ? 'border-term-primary bg-term-dim shadow-[0_0_12px_var(--term-primary-glow)]' : 'border-term-primary/30 hover:border-term-primary/60 hover:bg-term-dim'
+                }`}
             >
-              <input 
-                type="file" 
-                ref={fileInputRef} 
+              <input
+                type="file"
+                ref={fileInputRef}
                 onChange={(e) => e.target.files?.length && processFile(e.target.files[0])}
-                accept="image/*" 
-                className="absolute inset-0 opacity-0 cursor-pointer" 
+                accept="image/*"
+                className="absolute inset-0 opacity-0 cursor-pointer"
               />
-              
+
               {!bgImageSrc ? (
                 <div className="flex flex-col items-center gap-2">
                   <UploadCloud className="w-8 h-8 text-term-primary opacity-70 transition-transform hover:-translate-y-0.5" />
@@ -958,8 +970,8 @@ export default function App() {
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between bg-black/95 p-2 border border-term-primary/20">
                     <span className="text-[10px] text-term-primary truncate max-w-[200px]">{bgFileName}</span>
-                    <button 
-                      onClick={removeBgImage} 
+                    <button
+                      onClick={removeBgImage}
                       className="p-1 text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-400/20"
                       title="Remove Background"
                     >
@@ -975,8 +987,8 @@ export default function App() {
               <div className="flex flex-col gap-1.5">
                 <label className="text-[9px] text-term-primary/60">bg.style = </label>
                 <div className="relative">
-                  <select 
-                    value={bgFit} 
+                  <select
+                    value={bgFit}
                     onChange={(e: any) => {
                       playClickSound();
                       setBgFit(e.target.value);
@@ -998,7 +1010,7 @@ export default function App() {
               <label className="text-[9px] text-term-primary/60 font-mono">bg.presets = [stock_bg]</label>
               <div className="grid grid-cols-3 gap-2 border border-term-primary/20 p-2 bg-black/50">
                 {stockBgs.map((bg, idx) => (
-                  <button 
+                  <button
                     key={idx}
                     onClick={() => {
                       playClickSound();
@@ -1006,16 +1018,15 @@ export default function App() {
                       setBgFileName(bg.name);
                       setBgType('image');
                     }}
-                    className={`relative aspect-[16/10] border p-1 bg-black/40 flex flex-col justify-between items-center transition-all group overflow-hidden ${
-                      bgImageSrc === bg.src && bgType === 'image'
-                        ? 'border-term-primary text-term-primary shadow-[0_0_8px_var(--term-primary-glow)] bg-term-dim'
-                        : 'border-term-primary/20 text-term-primary/60 hover:border-term-primary/50 hover:text-term-primary'
-                    }`}
+                    className={`relative aspect-[16/10] border p-1 bg-black/40 flex flex-col justify-between items-center transition-all group overflow-hidden ${bgImageSrc === bg.src && bgType === 'image'
+                      ? 'border-term-primary text-term-primary shadow-[0_0_8px_var(--term-primary-glow)] bg-term-dim'
+                      : 'border-term-primary/20 text-term-primary/60 hover:border-term-primary/50 hover:text-term-primary'
+                      }`}
                     title={`Load background: ${bg.name}`}
                   >
                     {/* Thumbnail Preview */}
-                    <img 
-                      src={bg.src} 
+                    <img
+                      src={bg.src}
                       alt={bg.name}
                       className="w-full h-8 object-cover border border-white/10 opacity-70 group-hover:opacity-100 transition-opacity"
                     />
@@ -1032,7 +1043,7 @@ export default function App() {
                 <span className="font-semibold text-term-primary">{bgBrightness}%</span>
               </div>
               <div className="flex items-center gap-3">
-                <button 
+                <button
                   onClick={() => {
                     playClickSound();
                     setBgBrightness(b => Math.max(0, b - 10));
@@ -1042,18 +1053,18 @@ export default function App() {
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </button>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="200" 
-                  value={bgBrightness} 
+                <input
+                  type="range"
+                  min="0"
+                  max="200"
+                  value={bgBrightness}
                   onChange={(e) => {
                     setBgBrightness(parseInt(e.target.value));
                     if (Math.random() > 0.7) playKeyboardClick();
                   }}
                   className="zoom-slider"
                 />
-                <button 
+                <button
                   onClick={() => {
                     playClickSound();
                     setBgBrightness(b => Math.min(200, b + 10));
@@ -1084,7 +1095,7 @@ export default function App() {
                 <span className="font-semibold text-term-primary">{zoom}%</span>
               </div>
               <div className="flex items-center gap-3">
-                <button 
+                <button
                   onClick={() => {
                     playClickSound();
                     setZoom(z => Math.max(10, z - 10));
@@ -1094,18 +1105,18 @@ export default function App() {
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </button>
-                <input 
-                  type="range" 
-                  min="10" 
-                  max="200" 
-                  value={zoom} 
+                <input
+                  type="range"
+                  min="10"
+                  max="200"
+                  value={zoom}
                   onChange={(e) => {
                     setZoom(parseInt(e.target.value));
                     if (Math.random() > 0.7) playKeyboardClick();
                   }}
                   className="zoom-slider"
                 />
-                <button 
+                <button
                   onClick={() => {
                     playClickSound();
                     setZoom(z => Math.min(200, z + 10));
@@ -1118,7 +1129,7 @@ export default function App() {
               </div>
 
               <div className="flex justify-between mt-1 flex-wrap gap-2 text-[9px] font-mono">
-                <button 
+                <button
                   onClick={() => {
                     playBeepSound();
                     setHasUserMovedCanvas(false);
@@ -1129,7 +1140,7 @@ export default function App() {
                 >
                   <Maximize className="w-3 h-3" /> [FIT_SCREEN]
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     playBeepSound();
                     setHasUserMovedCanvas(false);
@@ -1140,7 +1151,7 @@ export default function App() {
                 >
                   <RefreshCw className="w-3 h-3" /> [RECENTER]
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     playBeepSound();
                     setZoom(100);
@@ -1159,8 +1170,8 @@ export default function App() {
             <div className="flex flex-col gap-3 mt-1">
               <label className="flex items-center gap-3 cursor-pointer select-none">
                 <div className="relative">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={showGrid}
                     onChange={(e) => {
                       playClickSound();
@@ -1177,8 +1188,8 @@ export default function App() {
 
               <label className="flex items-center gap-3 cursor-pointer select-none">
                 <div className="relative">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={showShadow}
                     onChange={(e) => {
                       playClickSound();
@@ -1198,7 +1209,7 @@ export default function App() {
 
         {/* Sidebar Footer Export */}
         <div className="p-5 border-t border-term-primary/20 bg-black">
-          <button 
+          <button
             onClick={handleExport}
             className="w-full py-3.5 bg-term-primary hover:bg-white text-black font-bold text-xs tracking-widest transition-all shadow-lg shadow-term-primary/10 flex items-center justify-center gap-2 border border-term-primary active:translate-y-0.5 active:scale-98"
           >
@@ -1210,7 +1221,7 @@ export default function App() {
 
       {/* Main Workspace Area */}
       <main className="flex-1 bg-black flex flex-col relative overflow-hidden">
-        
+
         {/* Ambient HUD Scanner bar (restricted to workspace background) */}
         <div className="hud-scanline" />
 
@@ -1230,9 +1241,9 @@ export default function App() {
 
         {/* Workspace Top Status Header */}
         <div className="h-16 border-b border-term-primary/20 bg-black/90 backdrop-blur-md flex items-center px-6 gap-6 z-40 select-none">
-          
+
           {/* Hide/Show Sidebar Button */}
-          <button 
+          <button
             onClick={() => {
               playClickSound();
               setIsSidebarOpen(!isSidebarOpen);
@@ -1269,7 +1280,7 @@ export default function App() {
         </div>
 
         {/* Scrollable Viewport with HUD coordinate overlays */}
-        <div 
+        <div
           ref={viewportRef}
           id="viewport"
           className="flex-1 overflow-auto p-14 relative"
@@ -1281,28 +1292,28 @@ export default function App() {
           {isMouseInViewport && (
             <>
               {/* Vertical line */}
-              <div 
+              <div
                 className="absolute top-0 bottom-0 w-[1px] pointer-events-none z-10"
-                style={{ 
+                style={{
                   left: `${coords.x}px`,
                   backgroundColor: 'var(--term-primary)',
-                  opacity: 0.12 
+                  opacity: 0.12
                 }}
               />
               {/* Horizontal line */}
-              <div 
+              <div
                 className="absolute left-0 right-0 h-[1px] pointer-events-none z-10"
-                style={{ 
+                style={{
                   top: `${coords.y}px`,
                   backgroundColor: 'var(--term-primary)',
-                  opacity: 0.12 
+                  opacity: 0.12
                 }}
               />
               {/* Floating coordinate badge */}
-              <div 
+              <div
                 className="absolute bg-black/90 border border-term-primary/40 px-1.5 py-0.5 text-[8px] font-mono pointer-events-none z-20"
-                style={{ 
-                  left: `${coords.x + 12}px`, 
+                style={{
+                  left: `${coords.x + 12}px`,
                   top: `${coords.y + 12}px`,
                   color: 'var(--term-primary)'
                 }}
@@ -1313,13 +1324,13 @@ export default function App() {
           )}
 
           {/* Grid canvas wrapper */}
-          <div 
+          <div
             className={`relative ${showGrid ? 'grid-pattern' : ''}`}
             style={{ width: `${WORKSPACE_SIZE}px`, height: `${WORKSPACE_SIZE}px` }}
           >
-            
+
             {/* Scaler box that has dimensions scaled by zoom */}
-            <div 
+            <div
               id="canvas-scaler"
               className={`absolute ${isResizeModeActive ? 'border border-term-primary/40' : ''}`}
               style={{
@@ -1330,11 +1341,10 @@ export default function App() {
               }}
             >
               {/* Scaled Canvas element */}
-              <div 
+              <div
                 id="canvas-container"
-                className={`absolute top-0 left-0 bg-[#0a0e14] transition-shadow duration-300 origin-top-left border border-transparent ${
-                  showShadow ? 'shadow-[0_25px_70px_-10px_rgba(0,0,0,0.95)]' : ''
-                }`}
+                className={`absolute top-0 left-0 bg-[#0a0e14] transition-shadow duration-300 origin-top-left border border-transparent ${showShadow ? 'shadow-[0_25px_70px_-10px_rgba(0,0,0,0.95)]' : ''
+                  }`}
                 style={{
                   width: `${width}px`,
                   height: `${height}px`,
@@ -1342,14 +1352,14 @@ export default function App() {
                 }}
               >
                 {/* Visual Artboard */}
-                <div 
+                <div
                   className="w-full h-full relative overflow-hidden cursor-grab active:cursor-grabbing border border-transparent"
                   onMouseDown={startMove}
                   onTouchStart={startMove}
                 >
                   {/* Background Layer */}
                   {bgType === 'color' && (
-                    <div 
+                    <div
                       className="absolute inset-0 pointer-events-none select-none"
                       style={{
                         backgroundColor: bgColor,
@@ -1358,7 +1368,7 @@ export default function App() {
                     />
                   )}
                   {bgType === 'gradient' && (
-                    <div 
+                    <div
                       className="absolute inset-0 pointer-events-none select-none"
                       style={{
                         backgroundImage: bgGradient,
@@ -1369,7 +1379,7 @@ export default function App() {
                   )}
                   {bgType === 'image' && bgImageSrc && (
                     bgFit === 'repeat' ? (
-                      <div 
+                      <div
                         className="absolute inset-0 pointer-events-none select-none"
                         style={{
                           backgroundImage: `url(${bgImageSrc})`,
@@ -1379,7 +1389,7 @@ export default function App() {
                         }}
                       />
                     ) : (
-                      <img 
+                      <img
                         src={bgImageSrc}
                         alt="workspace background"
                         className="absolute inset-0 w-full h-full pointer-events-none select-none"
@@ -1402,7 +1412,7 @@ export default function App() {
               {isResizeModeActive && (
                 <>
                   {/* Top edge center handle */}
-                  <div 
+                  <div
                     onMouseDown={(e) => startDrag(e, 't')}
                     onTouchStart={(e) => startDrag(e, 't')}
                     className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-4 h-4 cursor-ns-resize z-20 flex items-center justify-center group"
@@ -1412,7 +1422,7 @@ export default function App() {
                   </div>
 
                   {/* Bottom edge center handle */}
-                  <div 
+                  <div
                     onMouseDown={(e) => startDrag(e, 'b')}
                     onTouchStart={(e) => startDrag(e, 'b')}
                     className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-4 cursor-ns-resize z-20 flex items-center justify-center group"
@@ -1422,7 +1432,7 @@ export default function App() {
                   </div>
 
                   {/* Right edge center handle */}
-                  <div 
+                  <div
                     onMouseDown={(e) => startDrag(e, 'r')}
                     onTouchStart={(e) => startDrag(e, 'r')}
                     className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-4 h-4 cursor-ew-resize z-20 flex items-center justify-center group"
@@ -1432,7 +1442,7 @@ export default function App() {
                   </div>
 
                   {/* Left edge center handle */}
-                  <div 
+                  <div
                     onMouseDown={(e) => startDrag(e, 'l')}
                     onTouchStart={(e) => startDrag(e, 'l')}
                     className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-4 h-4 cursor-ew-resize z-20 flex items-center justify-center group"
@@ -1442,7 +1452,7 @@ export default function App() {
                   </div>
 
                   {/* Top Left Corner handle */}
-                  <div 
+                  <div
                     onMouseDown={(e) => startDrag(e, 'tl')}
                     onTouchStart={(e) => startDrag(e, 'tl')}
                     className="absolute -top-1.5 -left-1.5 w-3 h-3 cursor-nwse-resize z-20 flex items-center justify-center group"
@@ -1452,7 +1462,7 @@ export default function App() {
                   </div>
 
                   {/* Top Right Corner handle */}
-                  <div 
+                  <div
                     onMouseDown={(e) => startDrag(e, 'tr')}
                     onTouchStart={(e) => startDrag(e, 'tr')}
                     className="absolute -top-1.5 -right-1.5 w-3 h-3 cursor-nesw-resize z-20 flex items-center justify-center group"
@@ -1462,7 +1472,7 @@ export default function App() {
                   </div>
 
                   {/* Bottom Right Corner handle */}
-                  <div 
+                  <div
                     onMouseDown={(e) => startDrag(e, 'br')}
                     onTouchStart={(e) => startDrag(e, 'br')}
                     className="absolute -bottom-1.5 -right-1.5 w-3 h-3 cursor-nwse-resize z-20 flex items-center justify-center group"
@@ -1472,7 +1482,7 @@ export default function App() {
                   </div>
 
                   {/* Bottom Left Corner handle */}
-                  <div 
+                  <div
                     onMouseDown={(e) => startDrag(e, 'bl')}
                     onTouchStart={(e) => startDrag(e, 'bl')}
                     className="absolute -bottom-1.5 -left-1.5 w-3 h-3 cursor-nesw-resize z-20 flex items-center justify-center group"
@@ -1487,7 +1497,7 @@ export default function App() {
         </div>
 
         {/* Floating Actions bar for resize mode */}
-        <div 
+        <div
           className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[#05070a]/95 border border-term-primary py-2.5 px-6 flex items-center gap-6 shadow-[0_10px_30px_rgba(0,0,0,0.85)] z-50 transition-all duration-300"
           style={{
             transform: isResizeModeActive ? 'translate(-50%, 0)' : 'translate(-50%, 100px)',
@@ -1500,13 +1510,13 @@ export default function App() {
             <span>DRAG_HANDLES_TO_ADJUST_RESOLUTION.</span>
           </div>
           <div className="flex gap-3">
-            <button 
+            <button
               onClick={cancelResizeMode}
               className="bg-transparent border border-white/20 text-white font-bold text-xs py-1.5 px-4 hover:bg-white/10 hover:text-term-primary hover:border-term-primary/50 transition-all active:scale-95"
             >
               [CANCEL]
             </button>
-            <button 
+            <button
               onClick={applyResizeMode}
               className="bg-term-primary text-black font-bold text-xs py-1.5 px-4 shadow-lg shadow-term-primary/10 hover:bg-white hover:border-white transition-all active:scale-95"
             >
@@ -1514,6 +1524,102 @@ export default function App() {
             </button>
           </div>
         </div>
+
+        {/* Donation Modal overlay */}
+        {isDonateOpen && (
+          <div
+            onClick={() => {
+              playBeepSound();
+              setIsDonateOpen(false);
+            }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm transition-opacity duration-300 cursor-pointer"
+          >
+            {/* Modal Box */}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-md bg-[#05070a] border-2 border-term-primary shadow-[0_0_30px_var(--term-primary-glow)] flex flex-col crt-panel-effect overflow-hidden cursor-default"
+            >
+              {/* Scanline overlay */}
+              <div className="hud-scanline" />
+
+              {/* Header border stripe */}
+              <div className="h-[6px] bg-term-primary w-full" />
+
+              {/* Modal Header */}
+              <div className="p-4 border-b border-term-primary/20 bg-black/50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <QrCode className="w-4 h-4 text-term-primary animate-pulse" />
+                  <div>
+                    <h3 className="font-extrabold text-xs tracking-widest text-term-primary flex items-center gap-1.5">
+                      SUPPORT_DECK_CREATOR <span className="w-1.5 h-3 bg-term-primary terminal-blink" />
+                    </h3>
+                    <p className="text-[8px] text-term-primary/40 font-mono">CONNECTION: SECURE_LINK</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    playBeepSound();
+                    setIsDonateOpen(false);
+                  }}
+                  className="border border-term-primary/30 hover:border-red-500 hover:text-red-500 hover:bg-red-500/10 text-term-primary px-2 py-0.5 text-[8px] font-bold transition-all focus:outline-none"
+                >
+                  [ ESC_CLOSE ]
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 flex flex-col items-center justify-center gap-6">
+
+                {/* QR Code Presentation Container */}
+                <div className="flex flex-col items-center justify-center border border-term-primary/20 p-5 bg-black/50 relative overflow-hidden group w-full">
+                  {/* Digital corner brackets */}
+                  <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-term-primary/50" />
+                  <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-term-primary/50" />
+                  <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-term-primary/50" />
+                  <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-term-primary/50" />
+
+                  {/* Main QR Container with required background #faae2b */}
+                  <div className="relative p-5 bg-[#faae2b] border border-white/20 shadow-[0_0_15px_rgba(250,174,43,0.3)] group-hover:shadow-[0_0_25px_rgba(250,174,43,0.55)] transition-all duration-300">
+                    <img
+                      src={DonasiBarcode}
+                      alt="Donation Barcode QRIS"
+                      className="w-52 h-52 object-contain select-none"
+                    />
+
+                    {/* Glowing Laser Scan bar */}
+                    <div className="laser-scanner" />
+                  </div>
+
+                  <div className="mt-3 text-center">
+                    <span className="text-[9px] text-black font-extrabold bg-[#faae2b] px-2 py-0.5 uppercase tracking-widest shadow-[0_0_8px_rgba(250,174,43,0.25)]">
+                      scan_qris_to_donate
+                    </span>
+                  </div>
+                </div>
+
+                {/* Supporting Gratitude Message */}
+                <div className="w-full border border-term-primary/20 bg-black/60 p-4 text-center relative">
+                  <div className="absolute top-0 left-4 -translate-y-1/2 bg-[#05070a] px-2 text-[8px] text-term-primary/40 uppercase tracking-widest font-mono">
+                    [ feedback.message ]
+                  </div>
+                  <p className="text-sm font-bold text-slate-200 leading-relaxed font-mono py-1.5">
+                    "Terima kasih telah berdonasi, ini akan berguna bagi saya dan pengembangan web ini."
+                  </p>
+                  <div className="mt-2 text-[8px] text-term-primary/50 font-mono">
+                    FEED_STATUS: ACTIVE // FEED_STRENGTH: 100%
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-2.5 bg-black/60 border-t border-term-primary/10 flex items-center justify-between text-[8px] text-term-primary/40">
+                <span>PROJECT: TASK_BAR_HERO</span>
+                <span>AUTH_SIG: SUGA_B_SYSTEMS</span>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
