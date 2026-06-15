@@ -15,7 +15,8 @@ import {
   Volume2,
   VolumeX,
   Heart,
-  QrCode
+  QrCode,
+  Sliders
 } from 'lucide-react';
 
 interface Preset {
@@ -110,7 +111,9 @@ export default function App() {
   // Ref to the viewport container for autoFit sizing
   const viewportRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const floatingFileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
+  const [isFloatingPanelOpen, setIsFloatingPanelOpen] = useState<boolean>(false);
 
   // Persistence hooks
   useEffect(() => {
@@ -351,6 +354,25 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isMuted]);
+
+  // Reset/open floating panel based on sidebar state
+  useEffect(() => {
+    if (isSidebarOpen) {
+      setIsFloatingPanelOpen(false);
+    } else {
+      setIsFloatingPanelOpen(true);
+    }
+  }, [isSidebarOpen]);
+
+  // Re-center canvas scroll when sidebar is toggled
+  useEffect(() => {
+    // Wait for the sidebar transition to complete (300ms transition)
+    const timeoutId = setTimeout(() => {
+      scrollCanvasIntoViewRef.current(undefined, undefined);
+    }, 320);
+
+    return () => clearTimeout(timeoutId);
+  }, [isSidebarOpen]);
 
   // Adjust dimension inputs safely
   const handleWidthChange = (val: number) => {
@@ -1336,6 +1358,20 @@ export default function App() {
             {isSidebarOpen ? '[ < ] HIDE_CONTROLS' : '[ > ] SHOW_CONTROLS'}
           </button>
 
+          {/* Quick Donate Button when Sidebar is Hidden */}
+          {!isSidebarOpen && (
+            <button
+              onClick={() => {
+                playSuccessSound();
+                setIsDonateOpen(true);
+              }}
+              className="flex items-center gap-1.5 border border-yellow-500/40 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-black transition-all px-3 py-1.5 text-[9px] font-bold select-none focus:outline-none animate-pulse hover:animate-none group shadow-[0_0_8px_rgba(250,174,43,0.15)] hover:shadow-[0_0_15px_rgba(250,174,43,0.35)]"
+            >
+              <Heart className="w-3.5 h-3.5 fill-current animate-bounce group-hover:scale-110" />
+              <span>DONATE // SUPPORT</span>
+            </button>
+          )}
+
           <span className="text-[9px] text-term-primary/40 hidden md:inline">| shortcut: Ctrl+B</span>
 
           <div className="h-6 w-[1px] bg-term-primary/20" />
@@ -1606,6 +1642,260 @@ export default function App() {
             </button>
           </div>
         </div>
+
+        {/* Floating Quick Settings Panel (Hidden when sidebar is open) */}
+        {!isSidebarOpen && (
+          <div className="absolute inset-y-0 right-0 w-[360px] pointer-events-none z-50 flex items-center justify-end overflow-hidden">
+            {/* Toggle Button */}
+            <button
+              onClick={() => {
+                playClickSound();
+                setIsFloatingPanelOpen(!isFloatingPanelOpen);
+              }}
+              className="pointer-events-auto absolute right-0 top-1/2 -translate-y-1/2 w-8 h-24 bg-[#05070a]/95 border-y border-l border-term-primary/30 hover:border-term-primary text-term-primary flex flex-col items-center justify-center gap-2 hover:bg-term-dim transition-all duration-300 z-50 focus:outline-none shadow-[-5px_0_15px_rgba(0,0,0,0.5)]"
+              style={{
+                transform: isFloatingPanelOpen ? 'translateX(-310px)' : 'none',
+              }}
+              title={isFloatingPanelOpen ? "Close Quick Settings" : "Open Quick Settings"}
+            >
+              <Sliders className="w-3.5 h-3.5 text-term-primary animate-pulse" />
+              <span 
+                className="text-[8px] font-bold tracking-widest uppercase select-none"
+                style={{ writingMode: 'vertical-lr' }}
+              >
+                {isFloatingPanelOpen ? 'CLOSE' : 'QUICK_BG'}
+              </span>
+            </button>
+
+            {/* Quick Settings Drawer Panel */}
+            <div
+              className={`pointer-events-auto w-[310px] max-h-[85vh] bg-[#05070a]/95 border-y border-l border-term-primary/30 p-5 shadow-[-10px_0_30px_rgba(0,0,0,0.85),0_0_25px_var(--term-primary-glow)] crt-panel-effect transition-all duration-300 flex flex-col gap-4 overflow-y-auto ${
+                isFloatingPanelOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 pointer-events-none'
+              }`}
+            >
+              {/* Scanline overlay */}
+              <div className="hud-scanline" />
+
+              {/* Panel Header */}
+              <div className="flex items-center justify-between border-b border-term-primary/20 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 border border-term-primary flex items-center justify-center bg-term-dim">
+                    <Sliders className="w-3.5 h-3.5 text-term-primary animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[11px] tracking-wider text-term-primary uppercase flex items-center gap-1">
+                      QUICK_SETTING <span className="w-1.5 h-3 bg-term-primary terminal-blink inline-block" />
+                    </h3>
+                    <p className="text-[7px] text-term-primary/40 font-mono">SYS.CONFIG.BACKGROUND // v9.2</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    playBeepSound();
+                    setIsFloatingPanelOpen(false);
+                  }}
+                  className="text-[8px] border border-term-primary/30 hover:border-red-500 hover:text-red-500 hover:bg-red-500/10 text-term-primary px-1.5 py-0.5 font-bold transition-all"
+                >
+                  [ X ]
+                </button>
+              </div>
+
+              {/* Brightness Adjustment */}
+              <div className="flex flex-col gap-2 bg-black/40 border border-term-primary/10 p-3">
+                <div className="flex justify-between items-center text-[9px] text-term-primary/60 font-mono">
+                  <span>&gt; bg.brightness =</span>
+                  <span className="font-bold text-term-primary">{bgBrightness}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      playClickSound();
+                      setBgBrightness(b => Math.max(0, b - 10));
+                    }}
+                    className="w-7 h-7 bg-black border border-term-primary/30 flex items-center justify-center text-term-primary hover:bg-term-dim hover:border-term-primary transition-all focus:outline-none active:scale-95"
+                    title="Decrease Brightness"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <input
+                    type="range"
+                    min="0"
+                    max="200"
+                    value={bgBrightness}
+                    onChange={(e) => {
+                      setBgBrightness(parseInt(e.target.value));
+                      if (Math.random() > 0.7) playKeyboardClick();
+                    }}
+                    className="zoom-slider flex-1"
+                  />
+                  <button
+                    onClick={() => {
+                      playClickSound();
+                      setBgBrightness(b => Math.min(200, b + 10));
+                    }}
+                    className="w-7 h-7 bg-black border border-term-primary/30 flex items-center justify-center text-term-primary hover:bg-term-dim hover:border-term-primary transition-all focus:outline-none active:scale-95"
+                    title="Increase Brightness"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Background Customizer */}
+              <div className="flex flex-col gap-3 bg-black/40 border border-term-primary/10 p-3">
+                <h4 className="text-[9px] text-term-primary/60 font-mono">&gt; bg.source_select()</h4>
+
+                {/* Upload Image Section */}
+                <div className="flex flex-col gap-1.5">
+                  <input
+                    type="file"
+                    ref={floatingFileInputRef}
+                    onChange={(e) => {
+                      if (e.target.files?.length) {
+                        processFile(e.target.files[0]);
+                      }
+                    }}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  {!bgImageSrc ? (
+                    <button
+                      onClick={() => {
+                        playClickSound();
+                        floatingFileInputRef.current?.click();
+                      }}
+                      className="w-full py-2.5 bg-black border border-dashed border-term-primary/30 hover:border-term-primary hover:bg-term-dim text-term-primary text-[9px] font-extrabold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
+                    >
+                      <UploadCloud className="w-4 h-4" />
+                      UPLOAD BACKGROUND IMAGE
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-between bg-black p-2 border border-term-primary/20">
+                      <span className="text-[9px] text-term-primary truncate max-w-[170px] font-bold">{bgFileName}</span>
+                      <button
+                        onClick={removeBgImage}
+                        className="p-1 text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-400/20"
+                        title="Remove Background"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Stock Background Presets */}
+                <div className="flex flex-col gap-1.5 mt-1">
+                  <label className="text-[8px] text-term-primary/40 uppercase font-mono tracking-wider font-bold">bg.presets =</label>
+                  <div className="grid grid-cols-3 gap-2 border border-term-primary/15 p-1.5 bg-black/40">
+                    {stockBgs.map((bg, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          playClickSound();
+                          setBgImageSrc(bg.src);
+                          setBgFileName(bg.name);
+                          setBgType('image');
+                        }}
+                        className={`relative aspect-[16/10] border p-0.5 bg-black flex flex-col justify-between items-center transition-all group overflow-hidden ${
+                          bgImageSrc === bg.src && bgType === 'image'
+                            ? 'border-term-primary text-term-primary shadow-[0_0_6px_var(--term-primary-glow)] bg-term-dim'
+                            : 'border-term-primary/20 text-term-primary/55 hover:border-term-primary/50 hover:text-term-primary'
+                        }`}
+                        title={`Load preset background: ${bg.name}`}
+                      >
+                        <img
+                          src={bg.src}
+                          alt={bg.name}
+                          className="w-full h-7 object-cover opacity-60 group-hover:opacity-100 transition-opacity"
+                        />
+                        <span className="text-[7px] font-mono mt-1 font-bold tracking-wide">{bg.name.toUpperCase()}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Auto Rotate Background */}
+                <div className="flex flex-col gap-2 border-t border-term-primary/10 pt-2 mt-1">
+                  <label className="flex items-center gap-3 cursor-pointer select-none">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={isSlideshowActive}
+                        onChange={(e) => {
+                          playClickSound();
+                          setIsSlideshowActive(e.target.checked);
+                        }}
+                        className="sr-only"
+                      />
+                      <div className={`w-10 h-5 border transition-colors duration-200 ${isSlideshowActive ? 'bg-term-dim border-term-primary' : 'bg-black border-term-primary/20'}`}>
+                        <div className={`absolute top-0.5 left-0.5 w-4 h-4 transition-transform duration-200 ${isSlideshowActive ? 'translate-x-5 bg-term-primary' : 'translate-x-0 bg-term-primary/30'}`} />
+                      </div>
+                    </div>
+                    <span className="text-[8px] text-term-primary/60 font-mono">bg.autoRotate = {isSlideshowActive ? 'true' : 'false'};</span>
+                  </label>
+
+                  {isSlideshowActive && (
+                    <div className="flex items-center gap-2 mt-1 pl-1">
+                      <label className="text-[8px] text-term-primary/50 font-mono">interval =</label>
+                      <div className="flex items-center bg-black border border-term-primary/30 focus-within:border-term-primary w-14">
+                        <input
+                          type="number"
+                          value={slideshowInterval}
+                          min="1"
+                          onChange={(e) => {
+                            const val = Math.max(1, parseInt(e.target.value) || 1);
+                            setSlideshowInterval(val);
+                          }}
+                          className="w-full bg-transparent border-none py-0.5 px-1.5 text-[9px] text-term-primary outline-none"
+                        />
+                      </div>
+                      <select
+                        value={slideshowUnit}
+                        onChange={(e: any) => {
+                          playClickSound();
+                          setSlideshowUnit(e.target.value);
+                        }}
+                        className="bg-black border border-term-primary/30 text-[8px] py-0.5 px-1 text-term-primary outline-none cursor-pointer focus:border-term-primary font-mono"
+                      >
+                        <option value="sec">SEC</option>
+                        <option value="min">MIN</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Image Fit Options */}
+                {bgType === 'image' && bgImageSrc && (
+                  <div className="flex flex-col gap-1 mt-1 border-t border-term-primary/10 pt-2">
+                    <label className="text-[8px] text-term-primary/40 uppercase font-mono tracking-wider font-bold">bg.fit_style =</label>
+                    <div className="relative">
+                      <select
+                        value={bgFit}
+                        onChange={(e: any) => {
+                          playClickSound();
+                          setBgFit(e.target.value);
+                        }}
+                        className="w-full bg-black border border-term-primary/30 py-1.5 px-2 pr-8 text-[9px] text-term-primary outline-none cursor-pointer appearance-none focus:border-term-primary font-mono"
+                      >
+                        <option value="cover" className="bg-black text-term-primary">&gt; COVER (FILL)</option>
+                        <option value="contain" className="bg-black text-term-primary">&gt; CONTAIN (FIT)</option>
+                        <option value="stretch" className="bg-black text-term-primary">&gt; STRETCH (FILL)</option>
+                        <option value="repeat" className="bg-black text-term-primary">&gt; REPEAT (TILE)</option>
+                      </select>
+                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-term-primary pointer-events-none" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Status Footer info */}
+              <div className="mt-auto border-t border-term-primary/10 pt-2 flex items-center justify-between text-[7px] text-term-primary/30 font-mono">
+                <span>STATUS: STABLE</span>
+                <span>HUD_QUICK_CFG</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Donation Modal overlay */}
         {isDonateOpen && (
