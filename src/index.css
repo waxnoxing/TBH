@@ -1,0 +1,219 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --term-primary: #00ff66;
+  --term-primary-glow: rgba(0, 255, 102, 0.45);
+  --term-primary-dim: rgba(0, 255, 102, 0.15);
+  --term-bg: #000000;
+  --term-panel: #05070a;
+  --term-panel-border: rgba(0, 255, 102, 0.2);
+}
+
+.theme-green {
+  --term-primary: #00ff66;
+  --term-primary-glow: rgba(0, 255, 102, 0.45);
+  --term-primary-dim: rgba(0, 255, 102, 0.15);
+  --term-panel-border: rgba(0, 255, 102, 0.2);
+}
+
+.theme-amber {
+  --term-primary: #ffb000;
+  --term-primary-glow: rgba(255, 176, 0, 0.45);
+  --term-primary-dim: rgba(255, 176, 0, 0.15);
+  --term-panel-border: rgba(255, 176, 0, 0.2);
+}
+
+.theme-pink {
+  --term-primary: #ff007f;
+  --term-primary-glow: rgba(255, 0, 127, 0.45);
+  --term-primary-dim: rgba(255, 0, 127, 0.15);
+  --term-panel-border: rgba(255, 0, 127, 0.2);
+}
+
+.theme-blue {
+  --term-primary: #00d2ff;
+  --term-primary-glow: rgba(0, 210, 255, 0.45);
+  --term-primary-dim: rgba(0, 210, 255, 0.15);
+  --term-panel-border: rgba(0, 210, 255, 0.2);
+}
+
+@layer base {
+  body {
+    background-color: var(--term-bg);
+    color: #e2e8f0;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    transition: background-color 0.3s ease;
+  }
+
+  /* Force no rounded corners globally */
+  * {
+    border-radius: 0px !important;
+    scrollbar-width: thin;
+    scrollbar-color: var(--term-primary) var(--term-bg);
+  }
+
+  /* Custom Webkit scrollbars (terminal block style) */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--term-bg);
+    border-left: 1px solid var(--term-panel-border);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--term-primary);
+    border: 2px solid var(--term-bg);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #ffffff;
+  }
+}
+
+/* Sci-fi HUD blueprint coordinate grid pattern */
+.grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, var(--term-primary-dim) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--term-primary-dim) 1px, transparent 1px);
+  position: relative;
+}
+
+.grid-pattern::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-size: 8px 8px;
+  background-image: radial-gradient(circle, var(--term-primary-dim) 0.5px, transparent 0.5px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Blinking cursor animation */
+@keyframes terminal-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.terminal-blink {
+  animation: terminal-blink 1s step-end infinite;
+}
+
+/* CRT panel scanning line effect */
+.crt-panel-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.crt-panel-effect::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+}
+
+/* Drag cursor overrides for the body while dragging */
+body.dragging-ew, body.dragging-ew * {
+  cursor: ew-resize !important;
+}
+body.dragging-ns, body.dragging-ns * {
+  cursor: ns-resize !important;
+}
+body.dragging-nwse, body.dragging-nwse * {
+  cursor: nwse-resize !important;
+}
+body.dragging-nesw, body.dragging-nesw * {
+  cursor: nesw-resize !important;
+}
+body.dragging-move, body.dragging-move * {
+  cursor: grabbing !important;
+}
+
+/* Custom terminal-style block range input slider */
+.zoom-slider {
+  @apply w-full bg-black border h-2 outline-none appearance-none;
+  border-color: var(--term-panel-border);
+}
+
+.zoom-slider::-webkit-slider-thumb {
+  @apply w-4 h-4 cursor-pointer appearance-none transition-colors duration-100;
+  background-color: var(--term-primary);
+  box-shadow: 0 0 8px var(--term-primary);
+}
+
+.zoom-slider::-webkit-slider-thumb:hover {
+  background-color: #ffffff;
+}
+
+.zoom-slider::-moz-range-thumb {
+  @apply w-4 h-4 cursor-pointer border-none transition-colors duration-100;
+  background-color: var(--term-primary);
+  box-shadow: 0 0 8px var(--term-primary);
+  border-radius: 0px !important;
+}
+
+.zoom-slider::-moz-range-thumb:hover {
+  background-color: #ffffff;
+}
+
+/* Custom color picker wrapper reset */
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: 1px solid var(--term-primary);
+  border-radius: 0% !important;
+}
+
+/* Scanning scanline animation (hud background glow) */
+@keyframes scanline-anim {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.hud-scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--term-primary);
+  opacity: 0.08;
+  pointer-events: none;
+  animation: scanline-anim 6s linear infinite;
+  z-index: 10;
+}
+
+/* Terminal theme utility classes */
+.text-term-primary {
+  color: var(--term-primary) !important;
+  text-shadow: 0 0 4px var(--term-primary-glow);
+}
+.border-term-primary {
+  border-color: var(--term-primary) !important;
+}
+.bg-term-primary {
+  background-color: var(--term-primary) !important;
+}
+.bg-term-dim {
+  background-color: var(--term-primary-dim) !important;
+}
+.border-term-dim {
+  border-color: var(--term-panel-border) !important;
+}
