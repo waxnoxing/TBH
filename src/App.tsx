@@ -808,8 +808,8 @@ export default function App() {
         {/* Sidebar Scrollable Contents */}
         <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5 scrollbar-thin">
 
-          {/* Donate Section (Sticky at the top) */}
-          <div className="sticky top-0 z-20 bg-[#05070a] pb-3 -mt-1 pt-1">
+          {/* Donate Section (Sticky at the top with glassmorphism blur) */}
+          <div className="sticky top-0 z-20 bg-[#05070a]/80 backdrop-blur-md pb-3 -mx-5 px-5 -mt-5 pt-5 border-b border-term-primary/5">
             <button
               onClick={() => {
                 playSuccessSound();
