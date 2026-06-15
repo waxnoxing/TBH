@@ -808,17 +808,19 @@ export default function App() {
         {/* Sidebar Scrollable Contents */}
         <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5 scrollbar-thin">
 
-          {/* Donate Section */}
-          <button
-            onClick={() => {
-              playSuccessSound();
-              setIsDonateOpen(true);
-            }}
-            className="w-full flex items-center justify-center gap-2 border border-yellow-500/40 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-black transition-all py-3 px-4 text-xs font-bold select-none focus:outline-none animate-pulse hover:animate-none group shadow-[0_0_10px_rgba(250,174,43,0.15)] hover:shadow-[0_0_20px_rgba(250,174,43,0.4)]"
-          >
-            <Heart className="w-4 h-4 fill-current animate-bounce group-hover:scale-110" />
-            <span className="font-extrabold uppercase">Donate // Support</span>
-          </button>
+          {/* Donate Section (Sticky at the top) */}
+          <div className="sticky top-0 z-20 bg-[#05070a] pb-3 -mt-1 pt-1">
+            <button
+              onClick={() => {
+                playSuccessSound();
+                setIsDonateOpen(true);
+              }}
+              className="w-full flex items-center justify-center gap-2 border border-yellow-500/40 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-black transition-all py-3 px-4 text-xs font-bold select-none focus:outline-none animate-pulse hover:animate-none group shadow-[0_0_10px_rgba(250,174,43,0.15)] hover:shadow-[0_0_20px_rgba(250,174,43,0.4)]"
+            >
+              <Heart className="w-4 h-4 fill-current animate-bounce group-hover:scale-110" />
+              <span className="font-extrabold uppercase">Donate // Support</span>
+            </button>
+          </div>
 
           {/* Section 1: Resolution controls */}
           <section className="flex flex-col gap-4 border border-term-primary/20 p-4 bg-black/80 relative">
